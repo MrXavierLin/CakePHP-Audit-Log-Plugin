@@ -60,6 +60,7 @@ class AuditableBehavior extends \ModelBehavior {
 		}
 
 		if (!isset($this->settings[$Model->alias])) {
+            $this->settings[$Model->alias]['data_source'] = Configure::read('AuditLog.data_source');
 			$this->settings[$Model->alias]['ignore'] = array('created', 'updated', 'modified');
 			$this->settings[$Model->alias]['habtm'] = array();
 			if (!isset($settings['habtm'])) {
@@ -172,6 +173,11 @@ class AuditableBehavior extends \ModelBehavior {
 		$Model->bindModel(
 			array('hasMany' => array('AuditLog.Audit'))
 		);
+
+		if(isset($this->settings[$Model->alias]['data_source'])) {
+            $Model->Audit->useDbConfig = $this->settings[$Model->alias]['data_source'];
+            $Model->Audit->AuditDelta->useDbConfig = $this->settings[$Model->alias]['data_source'];
+        }
 
 		// If a currentUser() method exists in the model class (or, of
 		// course, in a superclass) the call that method to pull all user
@@ -318,6 +324,10 @@ class AuditableBehavior extends \ModelBehavior {
 		);
 
 		$this->Audit = ClassRegistry::init('AuditLog.Audit');
+        if(isset($this->settings[$Model->alias]['data_source'])) {
+            $this->Audit->useDbConfig = $this->settings[$Model->alias]['data_source'];
+            $this->Audit->AuditDelta->useDbConfig = $this->settings[$Model->alias]['data_source'];
+        }
 		$this->Audit->create();
 		$this->Audit->save($data);
 
